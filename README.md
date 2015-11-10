@@ -1,6 +1,8 @@
 RISC-V Frontend Server
 =========================
 
+This is a fork for the Riscy project.
+
 About
 ---------
 
@@ -16,5 +18,5 @@ declared the RISCV environment variable to point to the RISC-V install path:
 
     $ mkdir build
     $ cd build
-    $ ../configure --prefix=$RISCV
+    $ ../configure --prefix=$RISCV_TOOLS
     $ make install
