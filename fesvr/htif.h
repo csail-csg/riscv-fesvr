@@ -61,7 +61,9 @@ class htif_t
   addr_t sig_addr; // torture
   addr_t sig_len; // torture
 
+ protected:
   device_list_t device_list;
+ private:
   syscall_t syscall_proxy;
   bcd_t bcd;
   std::vector<device_t*> dynamic_devices;
