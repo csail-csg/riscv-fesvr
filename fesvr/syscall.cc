@@ -71,7 +71,9 @@ syscall_t::syscall_t(htif_t* htif)
 
   register_command(0, std::bind(&syscall_t::handle_syscall, this, _1), "syscall");
 
-  int stdin_fd = dup(0), stdout_fd0 = dup(1), stdout_fd1 = dup(1);
+  // int stdin_fd = dup(0), stdout_fd0 = dup(1), stdout_fd1 = dup(1);
+  // try to redirect everything to stderr
+  int stdin_fd = dup(0), stdout_fd0 = dup(2), stdout_fd1 = dup(2);
   if (stdin_fd < 0 || stdout_fd0 < 0 || stdout_fd1 < 0)
     throw std::runtime_error("could not dup stdin/stdout");
 
