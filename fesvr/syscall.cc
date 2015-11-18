@@ -238,7 +238,12 @@ reg_t syscall_t::sys_faccessat(reg_t dirfd, reg_t pname, reg_t len, reg_t mode, 
 {
   std::vector<char> name(len);
   memif->read(pname, len, &name[0]);
+#if 0
   return sysret_errno(AT_SYSCALL(faccessat, dirfd, &name[0], mode, 0));
+#else
+  fprintf(stderr, "sys_faccessat\n");
+  return 0;
+#endif
 }
 
 reg_t syscall_t::sys_linkat(reg_t odirfd, reg_t poname, reg_t olen, reg_t ndirfd, reg_t pnname, reg_t nlen, reg_t flags)
@@ -246,9 +251,15 @@ reg_t syscall_t::sys_linkat(reg_t odirfd, reg_t poname, reg_t olen, reg_t ndirfd
   std::vector<char> oname(olen), nname(nlen);
   memif->read(poname, olen, &oname[0]);
   memif->read(pnname, nlen, &nname[0]);
+#if 0
   return sysret_errno(linkat(fds.lookup(odirfd), int(odirfd) == RISCV_AT_FDCWD ? do_chroot(&oname[0]).c_str() : &oname[0],
                              fds.lookup(ndirfd), int(ndirfd) == RISCV_AT_FDCWD ? do_chroot(&nname[0]).c_str() : &nname[0],
                              flags));
+#else
+  fprintf(stderr, "sys_linkat\n");
+  return 0;
+#endif
+
 }
 
 reg_t syscall_t::sys_unlinkat(reg_t dirfd, reg_t pname, reg_t len, reg_t flags, reg_t a4, reg_t a5, reg_t a6)
