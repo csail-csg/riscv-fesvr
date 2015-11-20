@@ -48,5 +48,6 @@ int canonical_terminal_t::read()
 
 void canonical_terminal_t::write(char ch)
 {
-  assert(::write(1, &ch, 1) == 1);
+  int ret = ::write(1, &ch, 1);
+  assert(ret == 1);
 }
