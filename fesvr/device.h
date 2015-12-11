@@ -38,6 +38,10 @@ class device_t
   virtual ~device_t() {}
   virtual const char* identity() = 0;
   virtual void tick() {}
+  // [sizhuo] just for bcd_t: feed stdin to it
+  virtual void feed_stdin(int ch) {}
+  // [sizhuo] just for bcd_t: waiting for stdin
+  virtual bool wait_for_stdin() { return false; }
 
   void handle_command(command_t cmd);
 
@@ -62,7 +66,8 @@ class bcd_t : public device_t
  public:
   bcd_t();
   const char* identity() { return "bcd"; }
-  void tick();
+  void feed_stdin(int ch);
+  bool wait_for_stdin();
 
  private:
   void handle_read(command_t cmd);
@@ -134,6 +139,14 @@ class device_list_t
   void register_device(device_t* dev);
   void handle_command(command_t cmd);
   void tick();
+  // [sizhuo] get device bcd_t
+  device_t *get_bcd() {
+    if(devices.size() < 2) {
+      return 0;
+    } else {
+      return devices[1]; // this is bcd
+    }
+  }
 
  private:
   std::vector<device_t*> devices;

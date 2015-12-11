@@ -73,6 +73,7 @@ void bcd_t::handle_write(command_t cmd)
   cmd.respond(0x100 | (uint8_t)cmd.payload());
 }
 
+/*
 void bcd_t::tick()
 {
   int ch;
@@ -80,6 +81,27 @@ void bcd_t::tick()
   {
     pending_reads.front().respond(0x100 | ch);
     pending_reads.pop();
+  }
+} */
+
+bool bcd_t::wait_for_stdin()
+{
+  return !pending_reads.empty();
+}
+
+void bcd_t::feed_stdin(int ch)
+{
+  if (!pending_reads.empty()) {
+    if(ch != -1) {
+      pending_reads.front().respond(0x0100ULL | uint64_t(ch));
+      pending_reads.pop();
+    }
+    else {
+      std::cerr << "\n>> ERROR: fesvr: bcd_t::feed_stdin argument = -1\n";
+    }
+  }
+  else {
+    std::cerr << "\n>> ERROR: fesvr: bcd_t::feed_stdin is called when there is no pending read\n";
   }
 }
 
