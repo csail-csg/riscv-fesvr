@@ -56,7 +56,7 @@ void device_t::handle_identify(command_t cmd)
   cmd.respond(1);
 }
 
-bcd_t::bcd_t()
+bcd_t::bcd_t() : stdout_en(true)
 {
   register_command(0, std::bind(&bcd_t::handle_read, this, _1), "read");
   register_command(1, std::bind(&bcd_t::handle_write, this, _1), "write");
@@ -69,7 +69,9 @@ void bcd_t::handle_read(command_t cmd)
 
 void bcd_t::handle_write(command_t cmd)
 {
-  canonical_terminal_t::write(cmd.payload());
+  if (stdout_en) {
+    canonical_terminal_t::write(cmd.payload());
+  }
   cmd.respond(0x100 | (uint8_t)cmd.payload());
 }
 
@@ -103,6 +105,11 @@ void bcd_t::feed_stdin(int ch)
   else {
     std::cerr << "\n>> ERROR: fesvr: bcd_t::feed_stdin is called when there is no pending read\n";
   }
+}
+
+void bcd_t::set_stdout_en(bool x)
+{
+  stdout_en = x;
 }
 
 disk_t::disk_t(const char* fn)

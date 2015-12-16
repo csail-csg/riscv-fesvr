@@ -67,6 +67,7 @@ class bcd_t : public device_t
   bcd_t();
   const char* identity() { return "bcd"; }
   void feed_stdin(int ch);
+  void set_stdout_en(bool x);
   bool wait_for_stdin();
 
  private:
@@ -74,6 +75,7 @@ class bcd_t : public device_t
   void handle_write(command_t cmd);
 
   std::queue<command_t> pending_reads;
+  bool stdout_en;
 };
 
 class disk_t : public device_t
