@@ -12,7 +12,8 @@
 using namespace std::placeholders;
 
 device_t::device_t()
-  : command_handlers(command_t::MAX_COMMANDS),
+  : stdout_en(true),
+    command_handlers(command_t::MAX_COMMANDS),
     command_names(command_t::MAX_COMMANDS)
 {
   for (size_t cmd = 0; cmd < command_t::MAX_COMMANDS; cmd++)
@@ -56,7 +57,7 @@ void device_t::handle_identify(command_t cmd)
   cmd.respond(1);
 }
 
-bcd_t::bcd_t() : stdout_en(true)
+bcd_t::bcd_t()
 {
   register_command(0, std::bind(&bcd_t::handle_read, this, _1), "read");
   register_command(1, std::bind(&bcd_t::handle_write, this, _1), "write");
@@ -103,13 +104,8 @@ void bcd_t::feed_stdin(int ch)
     }
   }
   else {
-    std::cerr << "\n>> ERROR: fesvr: bcd_t::feed_stdin is called when there is no pending read\n";
+    // std::cerr << "\n>> ERROR: fesvr: bcd_t::feed_stdin is called when there is no pending read\n";
   }
-}
-
-void bcd_t::set_stdout_en(bool x)
-{
-  stdout_en = x;
 }
 
 disk_t::disk_t(const char* fn)
@@ -256,4 +252,10 @@ void device_list_t::tick()
 {
   for (size_t i = 0; i < num_devices; i++)
     devices[i]->tick();
+}
+
+void device_list_t::set_stdout_en(bool x)
+{
+  for (size_t i = 0; i < num_devices; i++)
+    devices[i]->set_stdout_en(x);
 }

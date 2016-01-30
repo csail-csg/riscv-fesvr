@@ -42,12 +42,14 @@ class device_t
   virtual void feed_stdin(int ch) {}
   // [sizhuo] just for bcd_t: waiting for stdin
   virtual bool wait_for_stdin() { return false; }
+  void set_stdout_en(bool x) { stdout_en = x; }
 
   void handle_command(command_t cmd);
 
  protected:
   typedef std::function<void(command_t)> command_func_t;
   void register_command(size_t, command_func_t, const char*);
+  bool stdout_en;
 
  private:
   device_t& operator = (const device_t&); // disallow
@@ -67,7 +69,6 @@ class bcd_t : public device_t
   bcd_t();
   const char* identity() { return "bcd"; }
   void feed_stdin(int ch);
-  void set_stdout_en(bool x);
   bool wait_for_stdin();
 
  private:
@@ -75,7 +76,6 @@ class bcd_t : public device_t
   void handle_write(command_t cmd);
 
   std::queue<command_t> pending_reads;
-  bool stdout_en;
 };
 
 class disk_t : public device_t
@@ -141,6 +141,7 @@ class device_list_t
   void register_device(device_t* dev);
   void handle_command(command_t cmd);
   void tick();
+  void set_stdout_en(bool x);
   // [sizhuo] get device bcd_t
   device_t *get_bcd() {
     if(devices.size() < 2) {
