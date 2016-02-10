@@ -152,6 +152,9 @@ reg_t syscall_t::sys_write(reg_t fd, reg_t pbuf, reg_t len, reg_t a3, reg_t a4, 
   if (stdout_en || (fd != 1 && fd !=2)) {
       // only write to stdout (1) or stderr (2) if stdout_en is true
       ret = sysret_errno(write(fds.lookup(fd), &buf[0], len));
+  } else {
+      // set return value to match a successful write
+      ret = len;
   }
   return ret;
 }
@@ -164,6 +167,9 @@ reg_t syscall_t::sys_pwrite(reg_t fd, reg_t pbuf, reg_t len, reg_t off, reg_t a4
   if (stdout_en || (fd != 1 && fd !=2)) {
       // only write to stdout (1) or stderr (2) if stdout_en is true
       ret = sysret_errno(pwrite(fds.lookup(fd), &buf[0], len, off));
+  } else {
+      // set return value to match a successful write
+      ret = len;
   }
   return ret;
 }
