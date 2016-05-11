@@ -11,17 +11,25 @@
 #include <stdio.h>
 #include <vector>
 #include <map>
+#include <errno.h>
 
 std::map<std::string, uint64_t> load_elf(const char* fn, memif_t* memif)
 {
   int fd = open(fn, O_RDONLY);
   struct stat s;
-  assert(fd != -1);
-  assert(fstat(fd, &s) != -1);
+  if (fd < 0) {
+    fprintf(stderr, "%s:%d Failed to open %s: errno=%d:%s\n", __FILE__, __LINE__, fn, errno, strerror(errno));
+    exit(-1);
+  }
+  int ret = fstat(fd, &s);
+  assert(ret != -1);
   size_t size = s.st_size;
 
   char* buf = (char*)mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
-  assert(buf != MAP_FAILED);
+  if (buf == MAP_FAILED) {
+    fprintf(stderr, "%s:%d Failed to mmap %s: buf=%p errno=%d:%s\n", __FILE__, __LINE__, fn, buf, errno, strerror(errno));
+    exit(-1);
+  }
   close(fd);
 
   assert(size >= sizeof(Elf64_Ehdr));

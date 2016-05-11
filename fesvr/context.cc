@@ -40,7 +40,8 @@ void context_t::init(void (*f)(void*), void* a)
   creator = current();
 
 #ifdef USE_UCONTEXT
-  assert(getcontext(context.get()) == 0);
+  int ret = getcontext(context.get());
+  assert(ret == 0);
   context->uc_link = creator->context.get();
   context->uc_stack.ss_size = 64*1024;
   context->uc_stack.ss_sp = new void*[context->uc_stack.ss_size/sizeof(void*)];
@@ -51,8 +52,10 @@ void context_t::init(void (*f)(void*), void* a)
 
   pthread_mutex_lock(&creator->mutex);
   creator->flag = 0;
-  assert(pthread_create(&thread, NULL, &context_t::wrapper, this) == 0);
-  assert(pthread_detach(thread) == 0);
+  int ret = pthread_create(&thread, NULL, &context_t::wrapper, this);
+  assert(ret == 0);
+  ret = pthread_detach(thread);
+  assert(ret == 0);
   while (!creator->flag)
     pthread_cond_wait(&creator->cond, &creator->mutex);
   pthread_mutex_unlock(&creator->mutex);
@@ -70,7 +73,8 @@ void context_t::switch_to()
 #ifdef USE_UCONTEXT
   context_t* prev = cur;
   cur = this;
-  assert(swapcontext(prev->context.get(), context.get()) == 0);
+  int ret = swapcontext(prev->context.get(), context.get());
+  assert(ret == 0);
 #else
   cur->flag = 0;
   this->flag = 1;
@@ -90,7 +94,8 @@ context_t* context_t::current()
   {
     cur = new context_t;
 #ifdef USE_UCONTEXT
-    assert(getcontext(cur->context.get()) == 0);
+    int ret = getcontext(cur->context.get());
+    assert(ret == 0);
 #else
     cur->thread = pthread_self();
     cur->flag = 1;
