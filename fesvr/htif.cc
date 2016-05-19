@@ -80,6 +80,8 @@ htif_t::htif_t(const std::vector<std::string>& args)
       dynamic_devices.push_back(new rfb_t(atoi(arg.c_str() + strlen("+rfb="))));
     else if (arg.find("+disk=") == 0)
       dynamic_devices.push_back(new disk_t(arg.c_str() + strlen("+disk=")));
+    else if (arg.find("+ramdisk=") == 0)
+      dynamic_devices.push_back(new ramdisk_t(arg.c_str() + strlen("+ramdisk=")));
     else if (arg.find("+signature=") == 0)
       sig_file = arg.c_str() + strlen("+signature=");
     else if (arg.find("+chroot=") == 0)

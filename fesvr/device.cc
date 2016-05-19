@@ -132,6 +132,80 @@ void disk_t::handle_write(command_t cmd)
   cmd.respond(req.tag);
 }
 
+ramdisk_t::ramdisk_t(const char* fn)
+{
+  int fd = ::open(fn, O_RDWR);
+  if (fd < 0)
+    throw std::runtime_error("could not open " + std::string(fn));
+
+  register_command(0, std::bind(&ramdisk_t::handle_read, this, _1), "read");
+  register_command(1, std::bind(&ramdisk_t::handle_write, this, _1), "write");
+
+  struct stat st;
+  if (fstat(fd, &st) < 0)
+    throw std::runtime_error("could not stat " + std::string(fn));
+
+  size = st.st_size;
+  // linux actually reads this, so we are just going to call this a disk
+  id = "disk size=" + std::to_string(size);
+
+  // make a copy of the file into the data array
+  data = new char[size];
+  // get pages at a time
+  size_t chunk_size = 4096;
+  for (size_t i = 0 ; i < (size/chunk_size) ; i++) {
+    if ((size_t)::pread(fd, &data[i * chunk_size], chunk_size, i * chunk_size) != chunk_size) {
+      throw std::runtime_error("could not read all of chunk " + std::to_string(i) + " from " + id);
+    }
+  }
+  // get last chunk if necessary
+  size_t remainder = size - (size/chunk_size)*chunk_size;
+  if (remainder != 0) {
+    // read the remainder
+    if ((size_t)::pread(fd, &data[(size/chunk_size)*chunk_size], remainder, (size/chunk_size)*chunk_size) != remainder) {
+      throw std::runtime_error("could not read all the remainder chunk from " + id);
+    }
+  }
+  close(fd);
+}
+
+ramdisk_t::~ramdisk_t()
+{
+  delete data;
+}
+
+void ramdisk_t::handle_read(command_t cmd)
+{
+  request_t req;
+  cmd.htif()->memif().read(cmd.payload(), sizeof(req), &req);
+
+  std::vector<uint8_t> buf(req.size);
+
+  if (req.offset > size || (req.offset + req.size) > size) {
+    throw std::runtime_error("could not read " + id + " @ " + std::to_string(req.offset));
+  }
+  memcpy(&buf[0], &data[req.offset], buf.size());
+
+  cmd.htif()->memif().write(req.addr, buf.size(), &buf[0]);
+  cmd.respond(req.tag);
+}
+
+void ramdisk_t::handle_write(command_t cmd)
+{
+  request_t req;
+  cmd.htif()->memif().read(cmd.payload(), sizeof(req), &req);
+
+  std::vector<uint8_t> buf(req.size);
+  cmd.htif()->memif().read(req.addr, buf.size(), &buf[0]);
+
+  if (req.offset > size || (req.offset + req.size) > size) {
+    throw std::runtime_error("could not write " + id + " @ " + std::to_string(req.offset));
+  }
+  memcpy(&data[req.offset], &buf[0], buf.size());
+
+  cmd.respond(req.tag);
+}
+
 device_list_t::device_list_t()
   : devices(command_t::MAX_COMMANDS, &null_device), num_devices(0)
 {

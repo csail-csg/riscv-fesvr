@@ -95,6 +95,32 @@ class disk_t : public device_t
   int fd;
 };
 
+// Modified version of disk_t that reads in file and works on a copy of it
+// without modification to the original file
+class ramdisk_t : public device_t
+{
+ public:
+  ramdisk_t(const char* fn);
+  ~ramdisk_t();
+  const char* identity() { return id.c_str(); }
+
+ private:
+  struct request_t
+  {
+    uint64_t addr;
+    uint64_t offset;
+    uint64_t size;
+    uint64_t tag;
+  };
+
+  void handle_read(command_t cmd);
+  void handle_write(command_t cmd);
+
+  std::string id;
+  size_t size;
+  char *data;
+};
+
 class null_device_t : public device_t
 {
  public:
