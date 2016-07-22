@@ -22,6 +22,11 @@ class htif_t
   bool done();
   int exit_code();
 
+  // for tandem verification
+  bool tick();
+  addr_t get_tohost_addr() { return tohost_addr; }
+  addr_t get_fromhost_addr() { return fromhost_addr; }
+
   virtual memif_t& memif() { return mem; }
   virtual uint32_t num_cores();
 
@@ -60,6 +65,7 @@ class htif_t
   syscall_t syscall_proxy;
   bcd_t bcd;
   std::vector<device_t*> dynamic_devices;
+  std::queue<reg_t> fromhost_queue;
 
   const std::vector<std::string>& target_args() { return targs; }
   std::string read_config_string(reg_t addr);

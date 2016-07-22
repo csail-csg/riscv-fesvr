@@ -164,7 +164,6 @@ int htif_t::run()
   start();
 
   auto enq_func = [](std::queue<reg_t>* q, uint64_t x) { q->push(x); };
-  std::queue<reg_t> fromhost_queue;
   std::function<void(reg_t)> fromhost_callback =
     std::bind(enq_func, &fromhost_queue, std::placeholders::_1);
 
@@ -194,6 +193,35 @@ int htif_t::run()
   stop();
 
   return exit_code();
+}
+
+bool htif_t::tick()
+{
+  auto enq_func = [](std::queue<reg_t>* q, uint64_t x) { q->push(x); };
+  std::function<void(reg_t)> fromhost_callback =
+    std::bind(enq_func, &fromhost_queue, std::placeholders::_1);
+
+  if (tohost_addr == 0) {
+    return false;
+  }
+
+  if (!signal_exit && exitcode == 0)
+  {
+    if (auto tohost = mem.read_uint64(tohost_addr)) {
+      mem.write_uint64(tohost_addr, 0);
+      command_t cmd(this, tohost, fromhost_callback);
+      device_list.handle_command(cmd);
+    }
+
+    device_list.tick();
+
+    if (!fromhost_queue.empty() && mem.read_uint64(fromhost_addr) == 0) {
+      mem.write_uint64(fromhost_addr, fromhost_queue.front());
+      fromhost_queue.pop();
+    }
+  }
+
+  return true;
 }
 
 std::string htif_t::read_config_string(reg_t addr)
