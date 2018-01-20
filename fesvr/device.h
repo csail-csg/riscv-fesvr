@@ -17,9 +17,10 @@ class command_t
     : _htif(htif), tohost(tohost), cb(cb) {}
 
   htif_t* htif() { return _htif; }
-  uint8_t device() { return tohost >> 56; }
-  uint8_t cmd() { return tohost >> 48; }
-  uint64_t payload() { return tohost << 16 >> 16; }
+  uint8_t device() { return tohost >> 56; } // bits[63:56]
+  uint8_t cmd() { return tohost >> 48; } // bits[55:48]
+  uint64_t payload() { return tohost << 16 >> 16; } // bits[47:0]
+  // respond to target (riscv proc): {device, cmd, resp}
   void respond(uint64_t resp) { cb((tohost >> 48 << 48) | (resp << 16 >> 16)); }
 
   static const size_t MAX_COMMANDS = 256;
@@ -27,7 +28,7 @@ class command_t
 
  private:
   htif_t* _htif;
-  uint64_t tohost;
+  uint64_t tohost; // request send from target (riscv proc) to host
   callback_t cb;
 };
 
@@ -57,6 +58,7 @@ class device_t
   std::vector<std::string> command_names;
 };
 
+// handle stdio of terminal
 class bcd_t : public device_t
 {
  public:

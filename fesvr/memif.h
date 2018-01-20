@@ -11,6 +11,9 @@ typedef int64_t sreg_t;
 typedef reg_t addr_t;
 
 class htif_t;
+
+// A wrapper that calls into htif::read_chunk/write_chunk to read/write the
+// memory of target (riscv proc)
 class memif_t
 {
 public:

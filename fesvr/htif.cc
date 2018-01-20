@@ -93,7 +93,7 @@ void htif_t::load_program()
 {
   std::string path;
   if (access(targs[0].c_str(), F_OK) == 0)
-    path = targs[0];
+    path = targs[0]; // this can be "bbl"
   else if (targs[0].find('/') == std::string::npos)
   {
     std::string test_path = PREFIX TARGET_DIR + targs[0];
@@ -109,6 +109,9 @@ void htif_t::load_program()
   if (symbols.count("tohost") && symbols.count("fromhost")) {
     tohost_addr = symbols["tohost"];
     fromhost_addr = symbols["fromhost"];
+    // print tohost & fromhost addrs
+    fprintf(stderr, "info: tohost addr %llx, fromhost addr %llx\n",
+            (long long unsigned)tohost_addr, (long long unsigned)fromhost_addr);
   } else {
     fprintf(stderr, "warning: tohost and fromhost symbols not in ELF; can't communicate with target\n");
   }
@@ -172,16 +175,18 @@ int htif_t::run()
 
   while (!signal_exit && exitcode == 0)
   {
+    // poll for mtohost
     if (auto tohost = mem.read_uint64(tohost_addr)) {
-      mem.write_uint64(tohost_addr, 0);
+      mem.write_uint64(tohost_addr, 0); // deq tohost val
       command_t cmd(this, tohost, fromhost_callback);
       device_list.handle_command(cmd);
     } else {
       idle();
     }
 
-    device_list.tick();
+    device_list.tick(); // e.g. bcd polls for terminal input
 
+    // write mfromhost: XXX only when mfromhost is 0
     if (!fromhost_queue.empty() && mem.read_uint64(fromhost_addr) == 0) {
       mem.write_uint64(fromhost_addr, fromhost_queue.front());
       fromhost_queue.pop();

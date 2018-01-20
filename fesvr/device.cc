@@ -77,7 +77,7 @@ void bcd_t::tick()
   int ch;
   if (!pending_reads.empty() && (ch = canonical_terminal_t::read()) != -1)
   {
-    pending_reads.front().respond(0x100 | ch);
+    pending_reads.front().respond(0x100 | ch); // resp payload for stdin char
     pending_reads.pop();
   }
 }
