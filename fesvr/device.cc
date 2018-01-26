@@ -56,7 +56,7 @@ void device_t::handle_identify(command_t cmd)
   cmd.respond(1);
 }
 
-bcd_t::bcd_t()
+bcd_t::bcd_t() : tick_disabled(false)
 {
   register_command(0, std::bind(&bcd_t::handle_read, this, _1), "read");
   register_command(1, std::bind(&bcd_t::handle_write, this, _1), "write");
@@ -74,12 +74,36 @@ void bcd_t::handle_write(command_t cmd)
 
 void bcd_t::tick()
 {
+  if(tick_disabled) return;
+
   int ch;
   if (!pending_reads.empty() && (ch = canonical_terminal_t::read()) != -1)
   {
     pending_reads.front().respond(0x100 | ch); // resp payload for stdin char
     pending_reads.pop();
   }
+}
+
+void bcd_t::feed_stdin(int ch)
+{
+  if (!pending_reads.empty()) {
+    if(ch != -1) {
+      pending_reads.front().respond(0x0100ULL | uint64_t(ch));
+      pending_reads.pop();
+    }
+    else {
+      fprintf(stderr, ">> ERROR: fesvr: bcd_t::feed_stdin argument = -1\n");
+    }
+  }
+  else {
+    fprintf(stderr, ">> ERROR: fesvr: bcd_t::feed_stdin is called "
+            "when there is no pending read\n");
+  }
+}
+
+bool bcd_t::waiting_for_stdin()
+{
+  return !pending_reads.empty();
 }
 
 disk_t::disk_t(const char* fn)

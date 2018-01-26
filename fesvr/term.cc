@@ -48,6 +48,6 @@ int canonical_terminal_t::read()
 
 void canonical_terminal_t::write(char ch)
 {
-  if (::write(1, &ch, 1) != 1)
+  if (::write(2, &ch, 1) != 1) // write to stderr
     abort();
 }

@@ -65,12 +65,20 @@ class bcd_t : public device_t
   bcd_t();
   const char* identity() { return "bcd"; }
   void tick();
+  // send a char to bcd as a keyboard input
+  void feed_stdin(int ch);
+  // check if bcd needs keyboard input
+  bool waiting_for_stdin();
+  // when we use feed_stdin to send keyboard input, may consider disable tick()
+  void disable_tick() { tick_disabled = true; }
 
  private:
   void handle_read(command_t cmd);
   void handle_write(command_t cmd);
 
   std::queue<command_t> pending_reads;
+
+  bool tick_disabled;
 };
 
 class disk_t : public device_t
@@ -110,6 +118,14 @@ class device_list_t
   void register_device(device_t* dev);
   void handle_command(command_t cmd);
   void tick();
+  // get device bcd which is always registered as devices[1]
+  bcd_t *get_bcd() {
+    if(devices.size() < 2) {
+      return 0;
+    } else {
+      return dynamic_cast<bcd_t*>(devices[1]);
+    }
+  }
 
  private:
   std::vector<device_t*> devices;
