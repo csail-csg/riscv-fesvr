@@ -48,6 +48,11 @@ class htif_t
 
   reg_t get_entry_point() { return entry; }
 
+  bcd_t& get_bcd() { return bcd; }
+  device_list_t& get_device_list() { return device_list; }
+  addr_t get_tohost_addr() { return tohost_addr; }
+  addr_t get_fromhost_addr() { return fromhost_addr; }
+
  private:
   memif_t mem;
   reg_t entry;

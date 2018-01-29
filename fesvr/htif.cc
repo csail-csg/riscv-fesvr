@@ -110,7 +110,7 @@ void htif_t::load_program()
     tohost_addr = symbols["tohost"];
     fromhost_addr = symbols["fromhost"];
     // print tohost & fromhost addrs
-    fprintf(stderr, "info: tohost addr %llx, fromhost addr %llx\n",
+    fprintf(stderr, ">> INFO: tohost addr %llx, fromhost addr %llx\n",
             (long long unsigned)tohost_addr, (long long unsigned)fromhost_addr);
   } else {
     fprintf(stderr, "warning: tohost and fromhost symbols not in ELF; can't communicate with target\n");

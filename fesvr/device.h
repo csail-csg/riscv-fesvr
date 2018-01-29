@@ -118,14 +118,6 @@ class device_list_t
   void register_device(device_t* dev);
   void handle_command(command_t cmd);
   void tick();
-  // get device bcd which is always registered as devices[1]
-  bcd_t *get_bcd() {
-    if(devices.size() < 2) {
-      return 0;
-    } else {
-      return dynamic_cast<bcd_t*>(devices[1]);
-    }
-  }
 
  private:
   std::vector<device_t*> devices;
