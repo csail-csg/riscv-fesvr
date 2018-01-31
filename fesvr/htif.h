@@ -51,6 +51,7 @@ class htif_t
   // expose for riscy htif
   bcd_t& get_bcd() { return bcd; }
   device_list_t& get_device_list() { return device_list; }
+  bool raw_exitcode_nonzero() { return exitcode != 0; }
  public:
   addr_t get_tohost_addr() { return tohost_addr; }
   addr_t get_fromhost_addr() { return fromhost_addr; }
