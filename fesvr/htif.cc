@@ -38,8 +38,9 @@ static void handle_signal(int sig)
   signal(sig, &handle_signal);
 }
 
-htif_t::htif_t(const std::vector<std::string>& args)
-  : mem(this), entry(DRAM_BASE), sig_addr(0), sig_len(0),
+htif_t::htif_t(const std::vector<std::string>& args, bool host_init_mem_)
+  : host_init_mem(host_init_mem_),
+    mem(this), entry(DRAM_BASE), sig_addr(0), sig_len(0),
     tohost_addr(0), fromhost_addr(0), exitcode(0), stopped(false),
     syscall_proxy(this)
 {
@@ -83,13 +84,20 @@ htif_t::~htif_t()
 
 void htif_t::start()
 {
-  if (!targs.empty() && targs[0] != "none")
-      load_program();
+  if (!targs.empty() && targs[0] != "none") {
+    if (host_init_mem) {
+      load_program(&mem);
+    } else {
+      // only get to/from host symbols, don't write memory
+      dummy_memif_t m;
+      load_program(&m);
+    }
+  }
 
   reset();
 }
 
-void htif_t::load_program()
+void htif_t::load_program(memif_t *m)
 {
   std::string path;
   if (access(targs[0].c_str(), F_OK) == 0)
@@ -104,7 +112,7 @@ void htif_t::load_program()
   if (path.empty())
     throw std::runtime_error("could not open " + targs[0]);
 
-  std::map<std::string, uint64_t> symbols = load_elf(path.c_str(), &mem, &entry);
+  std::map<std::string, uint64_t> symbols = load_elf(path.c_str(), m, &entry);
 
   if (symbols.count("tohost") && symbols.count("fromhost")) {
     tohost_addr = symbols["tohost"];

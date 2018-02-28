@@ -16,7 +16,8 @@
 class htif_t
 {
  public:
-  htif_t(const std::vector<std::string>& target_args);
+  htif_t(const std::vector<std::string>& target_args,
+         bool host_init_mem_ = true);
   virtual ~htif_t();
 
   virtual void start();
@@ -29,6 +30,9 @@ class htif_t
   virtual memif_t& memif() { return mem; }
 
  protected:
+  // whether host loads program to mem or leave it to boot rom
+  bool host_init_mem;
+
   virtual void reset() = 0;
 
   // read/write_chunk access target's memory
@@ -41,10 +45,11 @@ class htif_t
 
   // copy program binary to target's memory, and find out MMIP addrs for
   // tohost and fromhost
-  virtual void load_program();
+  virtual void load_program(memif_t *m);
   virtual void idle() {}
 
   const std::vector<std::string>& host_args() { return hargs; }
+  const std::vector<std::string>& target_args() { return targs; }
 
   reg_t get_entry_point() { return entry; }
 
@@ -74,8 +79,6 @@ class htif_t
   syscall_t syscall_proxy;
   bcd_t bcd;
   std::vector<device_t*> dynamic_devices;
-
-  const std::vector<std::string>& target_args() { return targs; }
 
   friend class memif_t;
   friend class syscall_t;
