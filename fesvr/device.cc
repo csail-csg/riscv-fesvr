@@ -30,6 +30,13 @@ void device_t::register_command(size_t cmd, command_func_t handler, const char* 
 
 void device_t::handle_command(command_t cmd)
 {
+  uint8_t c = cmd.cmd();
+  if (c >= command_handlers.size()) {
+    fprintf(stderr, ">> ERROR: fesvr: device_t: "
+            "cmd %d cannot be handled in dev %d\n",
+            int(c), int(cmd.device()));
+    exit(1);
+  }
   command_handlers[cmd.cmd()](cmd);
 }
 
